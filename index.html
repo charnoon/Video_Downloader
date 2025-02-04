@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Downloader</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+        input { padding: 10px; width: 300px; margin-right: 10px; }
+        button { padding: 10px 20px; cursor: pointer; }
+        #status { margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <h2>Video Downloader</h2>
+    <input type="text" id="videoUrl" placeholder="Enter video URL here">
+    <button onclick="downloadVideo()">Download</button>
+
+    <p id="status"></p>
+
+    <script>
+        function downloadVideo() {
+            let url = document.getElementById("videoUrl").value;
+            if (!url) {
+                alert("Please enter a URL!");
+                return;
+            }
+
+            document.getElementById("status").innerText = "Downloading...";
+
+            fetch("http://localhost:5000/download", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url: url })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.file) {
+                    document.getElementById("status").innerHTML = 
+                        `✅ Download complete! <a href="http://localhost:5000${data.file}" download>Click here to download</a>`;
+                } else {
+                    document.getElementById("status").innerText = "❌ Error: " + data.error;
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                document.getElementById("status").innerText = "❌ Error downloading video.";
+            });
+        }
+    </script>
+
+</body>
+</html>
