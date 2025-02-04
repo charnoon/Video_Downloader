@@ -1,11 +1,15 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import subprocess
 import os
 
 app = Flask(__name__)
 
-# Set the download directory
-OUTPUT_DIR = os.path.expanduser("~/Documents/Downloaded_Videos")
+# Set the correct directory paths
+BASE_DIR = os.path.expanduser("~/Documents/GitHub/Charlie-Noon/Video_Downloader")
+OUTPUT_DIR = os.path.join(BASE_DIR, "Downloaded_Videos")
+
+# Ensure the output directory exists
+os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 @app.route('/download', methods=['POST'])
 def download_video():
@@ -16,8 +20,8 @@ def download_video():
         return jsonify({"error": "No URL provided"}), 400
 
     try:
-        # Run the video download script
-        subprocess.run(["./video_downloader.sh", url], check=True)
+        # Run the video downloader script
+        subprocess.run([os.path.join(BASE_DIR, "video_downloader.sh"), url], check=True)
 
         # Find the latest downloaded file
         files = sorted(os.listdir(OUTPUT_DIR), key=lambda x: os.path.getctime(os.path.join(OUTPUT_DIR, x)), reverse=True)
@@ -35,7 +39,7 @@ def download_video():
 # Serve the downloaded files
 @app.route('/downloaded/<filename>')
 def serve_file(filename):
-    return app.send_static_file(os.path.join(OUTPUT_DIR, filename))
+    return send_from_directory(OUTPUT_DIR, filename)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
